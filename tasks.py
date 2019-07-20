@@ -15,7 +15,6 @@ class TaskHelper:
         self.__adb=adb
         self.__tapdelay=gconfig['delay']['tap']
         self.__uidelay=gconfig['delay']['uidelay']
-        debug(f"load tapdelay {self.__tapdelay}")
         pass
     
     def sleepui(self):

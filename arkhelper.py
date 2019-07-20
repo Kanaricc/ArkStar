@@ -8,14 +8,14 @@ class CommandLineApp:
     def __init__(self):
         self.__adbhelper=ADBHelper()
         self.__adbhelper.init_adb()
-    def autobattle(self,repeat=1):
+    def autobattle(self,repeat=1,fillsan=False):
         """
         auto enter and repeat one single boring battle again and again.
         """
         for i in range(repeat):
             sleep(rand(5,9))
             info(f"repeat tasks #{i}")
-            if StartBattleTask(self.__adbhelper).act(True) == False:
+            if StartBattleTask(self.__adbhelper).act(fillsan) == False:
                 logging.warning('tasks ended unexpectedly.')
                 break
 
