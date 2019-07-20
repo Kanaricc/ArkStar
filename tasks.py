@@ -1,55 +1,67 @@
 import logging
 from logging import debug,info
-from adbshell import rand_pos,sleep
+from adbshell import sleep
 import config
 import adbshell
 import image
-from config import unpack
-from random import randint
+from config import unpack,gconfig
+from simuman import rand_normal,rand_pos
 
-class Task:
+class InvalidParamException:
+    pass
+
+class TaskHelper:
     def __init__(self,adb):
         self.__adb=adb
+        self.__tapdelay=gconfig['delay']['tap']
+        self.__uidelay=gconfig['delay']['uidelay']
+        debug(f"load tapdelay {self.__tapdelay}")
         pass
     
-    def act(self):
-        raise NotImplementedError
-
-def rd(low=1200,high=2000):
-    return randint(low,high)/1000
+    def sleepui(self):
+        sleep(rand_normal(*self.__uidelay))
+    
+    def tapdelay(self,pos):
+        if(len(pos)==2):
+            self.__adb.tap(pos,rand_normal,rand_normal(*self.__tapdelay))
+        elif len(pos)==4:
+            self.__adb.tap(rand_pos(*unpack(pos)),rand_normal(*self.__tapdelay))
+        else:
+            raise InvalidParamException
 
 class StartBattleTask:
     def __init__(self,adb):
-        self.adb=adb
+        self.__adb=adb
+        self.__helper=TaskHelper(adb)
     
     def act(self,useorigin=False):
         debug('press start button')
-        self.adb.tap(rand_pos(*unpack(config.pointdata['battle']['startAction'])))
-        sleep(rd())
+        self.__helper.tapdelay(config.pointdata['battle']['startAction'])
+        self.__helper.sleepui()
         
         # 理智归零
         debug('find if san is not enough')
-        self.adb.pull_screenshot()
+        self.__adb.pull_screenshot()
         button=image.match_img('./screenshot.png','./flag/flag_useorigin.png',0.8)
         if len(button)>0:
             if useorigin:
                 self.adb.tap(rand_pos(button[0],delta=5))
-                sleep(rd())
+                self.__helper.sleepui()
             else:
                 info('out of san and no origin stone to use, stop tasks.')
                 return False
 
 
         debug('confirm battle')
-        self.adb.tap(rand_pos(*unpack(config.pointdata['battle']['confirmAction'])))
+        self.__helper.tapdelay(config.pointdata['battle']['confirmAction'])
         while True:
-            sleep(randint(10,15))
+            sleep(rand_normal(10,15))
             debug('getting screenshot')
-            self.adb.pull_screenshot()
+            self.__adb.pull_screenshot()
             if len(image.match_img('./screenshot.png','./flag/flag_endbattle.jpg',0.8))>0:
                 debug('battle endding flag detected, end battle')
-                self.adb.tap(rand_pos(config.pointdata['battle']['confirmResult'],delta=100))
+                self.__helper.tapdelay(config.pointdata['battle']['confirmResult'])
                 break
-        sleep(rd())
+        self.__helper.sleepui()
         return True
         

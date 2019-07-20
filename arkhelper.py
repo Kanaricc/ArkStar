@@ -2,6 +2,7 @@ from adbshell import ADBHelper
 from tasks import *
 import logging
 import fire
+from simuman import rand
 
 class CommandLineApp:
     def __init__(self):
@@ -12,7 +13,7 @@ class CommandLineApp:
         auto enter and repeat one single boring battle again and again.
         """
         for i in range(repeat):
-            sleep(randint(5,9))
+            sleep(rand(5,9))
             info(f"repeat tasks #{i}")
             if StartBattleTask(self.__adbhelper).act() == False:
                 logging.warning('tasks ended unexpectedly.')

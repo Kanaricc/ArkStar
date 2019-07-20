@@ -4,18 +4,6 @@ import json
 from time import sleep
 from logging import debug,info
 
-
-
-def rand_pos(posl,posr=None,delta=5):
-    res=posl
-    if posr!=None:
-        res[0]=random.randint(posl[0],posr[0])
-        res[1]=random.randint(posl[1],posr[1])
-    else:
-        res[0]=random.randint(posl[0]-delta,posl[0]+delta)
-        res[1]=random.randint(posl[1]+delta,posl[1]+delta)
-    return res
-
 class ADBHelper:
     def __init__(self):
         pass
