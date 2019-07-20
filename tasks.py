@@ -17,8 +17,8 @@ class TaskHelper:
         self.__uidelay=gconfig['delay']['uidelay']
         pass
     
-    def sleepui(self):
-        sleep(rand_normal(*self.__uidelay)/1000)
+    def sleepui(self,times=1):
+        sleep(rand_normal(*self.__uidelay)*times/1000)
     
     def tapdelay(self,pos):
         if(len(pos)==2):
@@ -61,13 +61,13 @@ class StartBattleTask:
         debug('confirm battle')
         self.__helper.tapdelay(config.pointdata['battle']['confirmAction'])
         while True:
-            sleep(rand_normal(10,15))
+            sleep(rand_normal(*gconfig['delay']['enddetect']))
             debug('getting screenshot')
             self.__adb.pull_screenshot()
             if len(image.match_img('./screenshot.png','./flag/flag_endbattle.jpg',0.8))>0:
                 debug('battle endding flag detected, end battle')
                 self.__helper.tapdelay(config.pointdata['battle']['confirmResult'])
                 break
-        self.__helper.sleepui()
+        self.__helper.sleepui(1.5)
         return True
         

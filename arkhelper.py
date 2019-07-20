@@ -13,11 +13,11 @@ class CommandLineApp:
         auto enter and repeat one single boring battle again and again.
         """
         for i in range(repeat):
-            sleep(rand(5,9))
             info(f"repeat tasks #{i}")
             if StartBattleTask(self.__adbhelper).act(fillsan) == False:
                 logging.warning('tasks ended unexpectedly.')
                 break
+            sleep(rand(5,9))
 
 if __name__=="__main__":
     logging.basicConfig(level=logging.DEBUG)

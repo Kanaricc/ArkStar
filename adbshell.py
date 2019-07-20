@@ -23,7 +23,6 @@ class ADBHelper:
 
     def pull_screenshot(self):
         self.runcmd('adb shell screencap -p /sdcard/screenshot.png')
-        sleep(1)
         self.runcmd('adb pull /sdcard/screenshot.png ./')
 
 if __name__=="__main__":
