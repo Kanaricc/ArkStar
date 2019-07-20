@@ -15,7 +15,7 @@ class CommandLineApp:
         for i in range(repeat):
             sleep(rand(5,9))
             info(f"repeat tasks #{i}")
-            if StartBattleTask(self.__adbhelper).act() == False:
+            if StartBattleTask(self.__adbhelper).act(True) == False:
                 logging.warning('tasks ended unexpectedly.')
                 break
 

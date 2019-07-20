@@ -19,11 +19,11 @@ class TaskHelper:
         pass
     
     def sleepui(self):
-        sleep(rand_normal(*self.__uidelay))
+        sleep(rand_normal(*self.__uidelay)/1000)
     
     def tapdelay(self,pos):
         if(len(pos)==2):
-            self.__adb.tap(pos,rand_normal,rand_normal(*self.__tapdelay))
+            self.__adb.tap(pos,rand_normal(*self.__tapdelay))
         elif len(pos)==4:
             self.__adb.tap(rand_pos(*unpack(pos)),rand_normal(*self.__tapdelay))
         else:
@@ -45,8 +45,15 @@ class StartBattleTask:
         button=image.match_img('./screenshot.png','./flag/flag_useorigin.png',0.8)
         if len(button)>0:
             if useorigin:
-                self.adb.tap(rand_pos(button[0],delta=5))
+                debug('use origin stone to fill san')
+                self.__helper.tapdelay(button[0])
                 self.__helper.sleepui()
+
+                # 重新开始
+                debug('press start button')
+                self.__helper.tapdelay(config.pointdata['battle']['startAction'])
+                self.__helper.sleepui()
+
             else:
                 info('out of san and no origin stone to use, stop tasks.')
                 return False
