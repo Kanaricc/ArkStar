@@ -1,3 +1,5 @@
+import logging
+from logging import debug,info
 from adbshell import rand_pos,sleep
 import config
 import adbshell
@@ -21,11 +23,12 @@ class StartBattleTask:
         self.adb=adb
     
     def act(self,useorigin=False):
-        print("press start")
+        debug('press start button')
         self.adb.tap(rand_pos(*unpack(config.pointdata['battle']['startAction'])))
         sleep(rd())
         
         # 理智归零
+        debug('find if san is not enough')
         self.adb.pull_screenshot()
         button=image.match_img('./screenshot.png','./flag/flag_useorigin.png',0.8)
         if len(button)>0:
@@ -33,18 +36,19 @@ class StartBattleTask:
                 self.adb.tap(rand_pos(button[0],delta=5))
                 sleep(rd())
             else:
-                print("out of san")
+                debug('out of san and no origin stone to use')
                 return
 
 
-        print('press confirm')
+        debug('confirm battle')
         self.adb.tap(rand_pos(*unpack(config.pointdata['battle']['confirmAction'])))
         while True:
             sleep(randint(10,15))
-            print('getting screenshot')
+            debug('getting screenshot')
             self.adb.pull_screenshot()
             if len(image.match_img('./screenshot.png','./flag/flag_endbattle.jpg',0.8))>0:
-                print('end detected')
+                debug('battle endding flag detected, end battle')
                 self.adb.tap(rand_pos(config.pointdata['battle']['confirmResult'],delta=100))
                 break
+        sleep(rd())
         

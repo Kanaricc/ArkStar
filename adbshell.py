@@ -2,6 +2,7 @@ import os
 import random
 import json
 from time import sleep
+from logging import debug,info
 
 
 
@@ -20,11 +21,11 @@ class ADBHelper:
         pass
 
     def init_adb(self):
-        print(self.runcmd('adb devices'))
+        self.runcmd('adb devices')
     
     def runcmd(self,cmd):
-        print(cmd)
-        print(os.popen(cmd).read())
+        debug(cmd)
+        debug(os.popen(cmd).read())
 
     def tap(self,pos,delay=0):
         if delay==0:
