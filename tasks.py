@@ -36,8 +36,8 @@ class StartBattleTask:
                 self.adb.tap(rand_pos(button[0],delta=5))
                 sleep(rd())
             else:
-                debug('out of san and no origin stone to use')
-                return
+                info('out of san and no origin stone to use, stop tasks.')
+                return False
 
 
         debug('confirm battle')
@@ -51,4 +51,5 @@ class StartBattleTask:
                 self.adb.tap(rand_pos(config.pointdata['battle']['confirmResult'],delta=100))
                 break
         sleep(rd())
+        return True
         
