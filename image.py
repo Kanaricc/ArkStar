@@ -1,5 +1,7 @@
 import cv2 as cv
 import numpy as np
+import os
+import subprocess
 
 def match_img(image,target,value):
     img_rgb=cv.imread(image)
@@ -21,3 +23,18 @@ def match_img(image,target,value):
     for pt in zip(*loc[::-1]):
         ans.append(pt)
     return ans
+
+def detect_number(image_path):
+    save_path="./t"
+    p=subprocess.Popen(f"tesseract {image_path} {save_path} --psm 7", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p.stdout.read()
+    res=""
+    with open(save_path+".txt") as f:
+        res=f.readline()
+    intres=0
+    try:
+        intres=int(res)
+    except:
+        return res
+    return intres
+

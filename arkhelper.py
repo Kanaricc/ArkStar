@@ -17,12 +17,14 @@ class DropDetector:
     
     def reload_flags(self):
         self.__flags=[]
+        self.__uuid=[]
         for parent, dirnames, filenames in os.walk(self.__flags_path,  followlinks=True):
             for filename in filenames:
                 fullpath=os.path.join(self.__flags_path,filename)
                 img=cv.imread(fullpath,0)
                 debug('loading flags '+fullpath)
                 if img is not None:
+                    self.__uuid.append(filename.split('.')[0])
                     self.__flags.append(img) # 0,以灰度读取
         info(f"finish loading flags")
         debug(self.__flags)
@@ -37,17 +39,11 @@ class DropDetector:
             ans.append(pt)
         return ans
     
-    def collect(self,img_path):
-        im=Image.open(img_path)
-        info(f"open image path at {img_path}")
-        debug(im)
-        drop=im.crop((665,785,1920,975))
-        
-        #增强图像对比度
-        high=ImageEnhance.Contrast(drop).enhance(100000)
+    def get_item_box(self,img):
+        return img.crop((665,785,1920,975))
+    
+    def get_spliting_lines(self,high):
         w,h=high.size
-        
-        #物品切分线
         breakpoints=[]
         black=0
         for x in range(0,w):
@@ -66,31 +62,77 @@ class DropDetector:
                 black=0
             if r==0 and g==0 and b==0:
                 black+=1
-
         breakpoints.sort()
+        return breakpoints
+    
+    def split_items(self,img):
+        """
+        将box中的物品切分
+        并不会转为灰度
+        """
+        w,h=img.size
+        #增强图像对比度
+        high=ImageEnhance.Contrast(img).enhance(100000)
         
+        #物品切分线
+        breakpoints=self.get_spliting_lines(high)
         debug("detect spliting line:")
         debug(breakpoints)
 
         drops=[]
         for i in range(0,len(breakpoints),2):
-            temp=drop.crop((breakpoints[i],0,breakpoints[i+1],h))
-            
-            # pillow向cv转化
-            img=cv.cvtColor(np.asarray(temp),cv.COLOR_RGB2BGR)
+            temp=img.crop((breakpoints[i],0,breakpoints[i+1],h))
+            drops.append(temp)
+        info(f"detect {len(drops)} items.")
+        return drops
+
+    def _split_item_number(self,img):
+        threshold = 180
+        table = []
+        for i in range(256):
+            if i < threshold:
+                table.append(1)
+            else:
+                table.append(0)
+        num=img.crop((90,135,155,168)).convert('L')
+        #num=drops[0].convert('L')
+        #num=ImageEnhance.Contrast(num).enhance(1.5)
+        num=num.point(table,'1')
+        return num
+    
+    def detect_item_number(self,img):
+        self._split_item_number(img).save('./temp.png','png')
+        return image.detect_number('./temp.png')
+
+    def collect_database(self,img_path):
+        im=Image.open(img_path)
+        info(f"open image path at {img_path}")
+        drop=self.get_item_box(im)
+        
+        
+        drops=self.split_items(drop)
+
+        cnt=0
+        for item in drops:
+            img=cv.cvtColor(np.asarray(item),cv.COLOR_RGB2BGR)
             img=cv.cvtColor(img,cv.COLOR_BGR2GRAY)
+
             ex=False
             for flag in self.__flags:
                 if len(self.match_img(img,flag,0.8))>0:ex=True
             if not ex:
-                drops.append(temp.convert('L'))
-
-        info(f"detect {len(drops)} unseen items, adding to database.")
+                cnt+=1
+                item.convert('L').crop((30,30,100,135)).save(os.path.join(self.__flags_path,f"{str(uuid.uuid4())}.jpg"),'jpeg')
         
-        # 获取flag
-        for i in drops:
-            i.crop((30,30,100,135)).save(os.path.join(self.__flags_path,f"{str(uuid.uuid4())}.jpg"),'jpeg')
+        info(f"add unseen {cnt} items.")
         self.reload_flags()
+    
+    def detect_uuid(self,img):
+        gray=cv.cvtColor(np.asarray(img),cv.COLOR_RGB2BGR)
+        gray=cv.cvtColor(gray,cv.COLOR_BGR2GRAY)
+        for i in range(0,len(self.__flags)):
+            if len(self.match_img(gray,self.__flags[i],0.8))>0:
+                return self.__uuid[i]
     
 class CommandLineApp:
     def __init__(self):
@@ -107,9 +149,19 @@ class CommandLineApp:
                 logging.warning('tasks ended unexpectedly.')
                 break
             sleep(rand_normal(5,9))
-    def collectitems(self,img_path,flags_path='./flags/items'):
+    def collect_items_database(self,img_path,flags_path='./flags/items'):
         detector=DropDetector(flags_path)
         detector.collect(img_path)
+    
+    def collect_items(self,img_path,flags_path='./flags/items'):
+        detector=DropDetector(flags_path)
+        im=Image.open(img_path)
+        info(f"open image path at {img_path}")
+        drop=detector.get_item_box(im)
+        drops=detector.split_items(drop)
+        for item in drops:
+            print(detector.detect_uuid(item),detector.detect_item_number(item))
+
 
 
 if __name__=="__main__":
