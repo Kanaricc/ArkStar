@@ -60,6 +60,14 @@ class StartBattleTask:
 
         debug('confirm battle')
         self.__helper.tapdelay(config.pointdata['battle']['confirmAction'])
+        self.__helper.sleepui(1.5)
+
+class ConfirmBattleResultTask:
+    def __init__(self,adb):
+        self.__adb=adb
+        self.__helper=TaskHelper(adb)
+    
+    def act(self):
         while True:
             sleep(rand_normal(*gconfig['delay']['enddetect']))
             debug('getting screenshot')
@@ -69,5 +77,16 @@ class StartBattleTask:
                 self.__helper.tapdelay(config.pointdata['battle']['confirmResult'])
                 break
         self.__helper.sleepui(1.5)
+
+class AutoBattleTask:
+    def __init__(self,adb):
+        self.__adb=adb
+        self.__helper=TaskHelper(adb)
+    
+    def act(self,useorigin=False):
+        if StartBattleTask(self.__adb).act(useorigin) == False:
+            return False
+        ConfirmBattleResultTask(self.__adb).act()
+
         return True
         

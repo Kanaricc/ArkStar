@@ -21,4 +21,3 @@ def match_img(image,target,value):
     for pt in zip(*loc[::-1]):
         ans.append(pt)
     return ans
-        
