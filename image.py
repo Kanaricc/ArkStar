@@ -2,6 +2,7 @@ import cv2 as cv
 import numpy as np
 import os
 import subprocess
+from PIL import Image
 
 def match_img(image,target,value):
     img_rgb=cv.imread(image)
@@ -23,6 +24,18 @@ def match_img(image,target,value):
     for pt in zip(*loc[::-1]):
         ans.append(pt)
     return ans
+
+def binarify(img,fac=180,rev=0):
+        threshold = fac
+        table = []
+        for i in range(256):
+            if i < threshold:
+                table.append(rev)
+            else:
+                table.append(rev^1)
+        num=img.convert('L')
+        num=num.point(table,'1')
+        return num
 
 def detect_number(image_path):
     save_path="./t"

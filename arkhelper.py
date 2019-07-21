@@ -42,27 +42,39 @@ class DropDetector:
     def get_item_box(self,img):
         return img.crop((665,785,1920,975))
     
-    def get_spliting_lines(self,high):
+    def get_spliting_lines(self,img):
+        #high=image.binarify(img,75)
+        high=ImageEnhance.Contrast(img).enhance(2.5)
+        #high.save('./debug.png','png')
         w,h=high.size
         breakpoints=[]
         black=0
         for x in range(0,w):
-            r,g,b,alpha=high.getpixel((x,95)) # 物品中线为95
+            r,g,b,al=high.getpixel((x,95)) # 物品中线为95
             if r!=0 or g!=0 or b!=0:
-                if black>=30:
+                if black>=25:
                     breakpoints.append(x)
+                    #pass
                 black=0
             if r==0 and g==0 and b==0:
                 black+=1
+        black=0
         for x in range(w-1,0,-1):
-            r,g,b,alpha=high.getpixel((x,95)) # 物品中线为95
+            r,g,b,al=high.getpixel((x,95)) # 物品中线为95
             if r!=0 or g!=0 or b!=0:
-                if black>=30:
+                if black>=25:
                     breakpoints.append(x)
                 black=0
             if r==0 and g==0 and b==0:
                 black+=1
         breakpoints.sort()
+
+        #debug
+        #draw=ImageDraw.Draw(high)
+        #for x in breakpoints:
+        #    draw.line((x,0,x,h),255)
+        
+        #high.save('./debug.png','png')
         return breakpoints
     
     def split_items(self,img):
@@ -72,10 +84,10 @@ class DropDetector:
         """
         w,h=img.size
         #增强图像对比度
-        high=ImageEnhance.Contrast(img).enhance(100000)
+        
         
         #物品切分线
-        breakpoints=self.get_spliting_lines(high)
+        breakpoints=self.get_spliting_lines(img)
         debug("detect spliting line:")
         debug(breakpoints)
 
