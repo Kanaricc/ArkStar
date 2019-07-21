@@ -164,14 +164,35 @@ class CommandLineApp:
         detector=DropDetector(flags_path)
         detector.collect_database(img_path)
     
-    def collect_items(self,img_path,flags_path='./flags/items'):
+    def collect_items(self,img_path,flags_path='./flags/items',auto_addition=True):
         detector=DropDetector(flags_path)
-        drops=detector.get_items_from_screenshot(img_path)
-        for item in drops:
-            print(detector.detect_uuid(item),detector.detect_item_number(item))
+        if os.path.isfile(img_path):
+            if auto_addition:
+                detector.collect_database(img_path)
+            drops=detector.get_items_from_screenshot(img_path)
+            for item in drops:
+                print(detector.detect_uuid(item),detector.detect_item_number(item))
+        else:
+            ans={}
+            for parent, dirnames, filenames in os.walk(img_path,followlinks=True):
+                for filename in filenames:
+                    fullpath=os.path.join(img_path,filename)
+                    if not fullpath.endswith('.png'):continue
+                    debug(f"open result screenshot {fullpath}")
+                    if auto_addition:
+                        detector.collect_database(fullpath)
+                    drops=detector.get_items_from_screenshot(fullpath)
+                    for item in drops:
+                        uu=detector.detect_uuid(item)
+                        if uu not in ans:
+                            ans[uu]=0
+                        ans[uu]+=detector.detect_item_number(item)
+            for k in ans:
+                print(k,ans[k])
+
 
 
 
 if __name__=="__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     fire.Fire(CommandLineApp)
