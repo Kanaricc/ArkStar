@@ -1,6 +1,8 @@
 screenshot.*
-*.png
 
+*.jpg
+*.png
 __pycache__
 
 .DS_Store
+.ipynb_*

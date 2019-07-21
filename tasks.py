@@ -6,6 +6,8 @@ import adbshell
 import image
 from config import unpack,gconfig
 from simuman import rand_normal,rand_pos
+from shutil import copyfile
+import uuid
 
 class InvalidParamException:
     pass
@@ -70,14 +72,19 @@ class ConfirmBattleResultTask:
     def act(self):
         while True:
             sleep(rand_normal(*gconfig['delay']['enddetect']))
+            
             debug('getting screenshot')
             self.__adb.pull_screenshot()
+            copyfile('./screenshot.png',f"./results/{str(uuid.uuid4())}.png")
+            
             if len(image.match_img('./screenshot.png','./flag/flag_endbattle.jpg',0.8))>0:
                 debug('battle endding flag detected, end battle')
                 self.__helper.tapdelay(config.pointdata['battle']['confirmResult'])
                 break
         self.__helper.sleepui(1.5)
 
+        
+        
 class AutoBattleTask:
     def __init__(self,adb):
         self.__adb=adb
