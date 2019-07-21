@@ -11,7 +11,7 @@ from PIL import Image,ImageEnhance,ImageDraw
 import numpy as np
 from config import gconfig
 
-def lookup_uuid(id):
+def lookup_name_by_uuid(id):
     if id not in gconfig['items-dict']:
         return id
     return gconfig['items-dict'][id]
@@ -34,6 +34,12 @@ class DropDetector:
                     self.__flags.append(img) # 0,以灰度读取
         info(f"finish loading flags")
         debug(self.__flags)
+
+        # 同步到config的数据库中
+        for i in self.__uuid:
+            if i not in gconfig['items-dict']:
+                gconfig['items-dict'][i]=i
+        config.save()
     
     def match_img(self,image,target,value):
         #w,h=template.shape[::-1]
@@ -89,12 +95,9 @@ class DropDetector:
         并不会转为灰度
         """
         w,h=img.size
-        #增强图像对比度
-        
-        
         #物品切分线
         breakpoints=self.get_spliting_lines(img)
-        debug("detect spliting line:")
+        debug("borders of item:")
         debug(breakpoints)
 
         drops=[]
@@ -129,7 +132,7 @@ class DropDetector:
         except:
             pass
         else:
-            info(f"open image path at {im}")
+            info(f"open image at {im}")
             im=Image.open(im)
            
         drop=self.get_item_box(im)
@@ -141,13 +144,8 @@ class DropDetector:
 
         cnt=0
         for item in drops:
-            img=cv.cvtColor(np.asarray(item),cv.COLOR_RGB2BGR)
-            img=cv.cvtColor(img,cv.COLOR_BGR2GRAY)
-
-            ex=False
-            for flag in self.__flags:
-                if len(self.match_img(img,flag,0.8))>0:ex=True
-            if not ex:
+            ex=self.detect_uuid(item)
+            if ex is None:
                 cnt+=1
                 item.convert('L').crop((30,30,100,135)).save(os.path.join(self.__flags_path,f"{str(uuid.uuid4())}.jpg"),'jpeg')
         
@@ -155,13 +153,14 @@ class DropDetector:
         self.reload_flags()
     
     def detect_uuid(self,img):
-        debug('turn into gray')
+        debug('turn img into gray')
         gray=cv.cvtColor(np.asarray(img),cv.COLOR_RGB2BGR)
         gray=cv.cvtColor(gray,cv.COLOR_BGR2GRAY)
-        debug('looking up in flags')
+        debug('looking img up in current flags')
         for i in range(0,len(self.__flags)):
             if len(self.match_img(gray,self.__flags[i],0.8))>0:
                 return self.__uuid[i]
+        return None
     
 class CommandLineApp:
     def __init__(self):
@@ -178,7 +177,7 @@ class CommandLineApp:
                 logging.warning('tasks ended unexpectedly.')
                 break
             sleep(rand_normal(5,9))
-    def collect_items_database(self,img_path,flags_path='./flags/items'):
+    def __collect_items_saving_database(self,img_path,flags_path='./flags/items'):
         detector=DropDetector(flags_path)
         detector.collect_database(img_path)
     
@@ -189,14 +188,14 @@ class CommandLineApp:
                 detector.collect_database(img_path)
             drops=detector.get_items_from_screenshot(img_path)
             for item in drops:
-                print(lookup_uuid(detector.detect_uuid(item)),detector.detect_item_number(item))
+                print(lookup_name_by_uuid(detector.detect_uuid(item)),detector.detect_item_number(item))
         else:
             ans={}
             for parent, dirnames, filenames in os.walk(img_path,followlinks=True):
                 for filename in filenames:
                     fullpath=os.path.join(img_path,filename)
                     if not fullpath.endswith('.png'):continue
-                    debug(f"open result screenshot {fullpath}")
+                    debug(f"open screenshot at {fullpath}")
                     if auto_addition:
                         detector.collect_database(fullpath)
                     drops=detector.get_items_from_screenshot(fullpath)
@@ -206,10 +205,7 @@ class CommandLineApp:
                             ans[uu]=0
                         ans[uu]+=detector.detect_item_number(item)
             for k in ans:
-                print(lookup_uuid(k),ans[k])
-
-
-
+                print(lookup_name_by_uuid(k),ans[k])
 
 if __name__=="__main__":
     logging.basicConfig(level=logging.INFO)

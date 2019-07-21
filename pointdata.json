@@ -1,8 +1,24 @@
 {
-    "battle":{
-        "startAction":[1596,962,1840,1011],
-        "confirmAction":[1588,600,1721,945],
-        "changeSpeed":[1637,109],
-        "confirmResult":[1320,582]
+    "battle": {
+        "changeSpeed": [
+            1637,
+            109
+        ],
+        "confirmAction": [
+            1588,
+            600,
+            1721,
+            945
+        ],
+        "confirmResult": [
+            1320,
+            582
+        ],
+        "startAction": [
+            1596,
+            962,
+            1840,
+            1011
+        ]
     }
 }
