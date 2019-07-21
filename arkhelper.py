@@ -104,13 +104,22 @@ class DropDetector:
         self._split_item_number(img).save('./temp.png','png')
         return image.detect_number('./temp.png')
 
-    def collect_database(self,img_path):
-        im=Image.open(img_path)
-        info(f"open image path at {img_path}")
+    def get_items_from_screenshot(self,img):
+        im=img
+        try:
+            im+''
+        except:
+            pass
+        else:
+            info(f"open image path at {im}")
+            im=Image.open(im)
+           
         drop=self.get_item_box(im)
         
-        
         drops=self.split_items(drop)
+        return drops
+    def collect_database(self,img_path):
+        drops=self.get_items_from_screenshot(img_path)
 
         cnt=0
         for item in drops:
@@ -128,8 +137,10 @@ class DropDetector:
         self.reload_flags()
     
     def detect_uuid(self,img):
+        debug('turn into gray')
         gray=cv.cvtColor(np.asarray(img),cv.COLOR_RGB2BGR)
         gray=cv.cvtColor(gray,cv.COLOR_BGR2GRAY)
+        debug('looking up in flags')
         for i in range(0,len(self.__flags)):
             if len(self.match_img(gray,self.__flags[i],0.8))>0:
                 return self.__uuid[i]
@@ -151,14 +162,11 @@ class CommandLineApp:
             sleep(rand_normal(5,9))
     def collect_items_database(self,img_path,flags_path='./flags/items'):
         detector=DropDetector(flags_path)
-        detector.collect(img_path)
+        detector.collect_database(img_path)
     
     def collect_items(self,img_path,flags_path='./flags/items'):
         detector=DropDetector(flags_path)
-        im=Image.open(img_path)
-        info(f"open image path at {img_path}")
-        drop=detector.get_item_box(im)
-        drops=detector.split_items(drop)
+        drops=detector.get_items_from_screenshot(img_path)
         for item in drops:
             print(detector.detect_uuid(item),detector.detect_item_number(item))
 
