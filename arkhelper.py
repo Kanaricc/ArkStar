@@ -9,6 +9,12 @@ import cv2 as cv
 import os
 from PIL import Image,ImageEnhance,ImageDraw
 import numpy as np
+from config import gconfig
+
+def lookup_uuid(id):
+    if id not in gconfig['items-dict']:
+        return id
+    return gconfig['items-dict'][id]
 
 class DropDetector:
     def __init__(self,flags_path):
@@ -183,7 +189,7 @@ class CommandLineApp:
                 detector.collect_database(img_path)
             drops=detector.get_items_from_screenshot(img_path)
             for item in drops:
-                print(detector.detect_uuid(item),detector.detect_item_number(item))
+                print(lookup_uuid(detector.detect_uuid(item)),detector.detect_item_number(item))
         else:
             ans={}
             for parent, dirnames, filenames in os.walk(img_path,followlinks=True):
@@ -200,11 +206,11 @@ class CommandLineApp:
                             ans[uu]=0
                         ans[uu]+=detector.detect_item_number(item)
             for k in ans:
-                print(k,ans[k])
+                print(lookup_uuid(k),ans[k])
 
 
 
 
 if __name__=="__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     fire.Fire(CommandLineApp)
