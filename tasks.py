@@ -43,7 +43,7 @@ class StartBattleTask:
         # 理智归零
         debug('find if san is not enough')
         self.__adb.pull_screenshot()
-        button=image.match_img('./screenshot.png','./flag/flag_useorigin.png',0.8)
+        button=image.match_img('./screenshot.png','./flags/flag_useorigin.png',0.8)
         if len(button)>0:
             if useorigin:
                 debug('use origin stone to fill san')
@@ -77,7 +77,7 @@ class ConfirmBattleResultTask:
             self.__adb.pull_screenshot()
             
             
-            if len(image.match_img('./screenshot.png','./flag/flag_endbattle.jpg',0.8))>0:
+            if len(image.match_img('./screenshot.png','./flags/flag_endbattle.jpg',0.8))>0:
                 debug('battle endding flag detected, end battle')
                 copyfile('./screenshot.png',f"./results/{str(uuid.uuid4())}.png")
                 self.__helper.tapdelay(config.pointdata['battle']['confirmResult'])

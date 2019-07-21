@@ -24,7 +24,7 @@ class DropDetector:
                 debug('loading flags '+fullpath)
                 if img is not None:
                     self.__flags.append(img) # 0,以灰度读取
-        debug(f"finish loading flags")
+        info(f"finish loading flags")
         debug(self.__flags)
     
     def match_img(self,image,target,value):
@@ -39,7 +39,7 @@ class DropDetector:
     
     def collect(self,img_path):
         im=Image.open(img_path)
-        debug(f"open image path at {img_path}")
+        info(f"open image path at {img_path}")
         debug(im)
         drop=im.crop((665,785,1920,975))
         
@@ -84,9 +84,10 @@ class DropDetector:
                 if len(self.match_img(img,flag,0.8))>0:ex=True
             if not ex:
                 drops.append(temp.convert('L'))
+
+        info(f"detect {len(drops)} unseen items, adding to database.")
         
         # 获取flag
-        flags=[]
         for i in drops:
             i.crop((30,30,100,135)).save(os.path.join(self.__flags_path,f"{str(uuid.uuid4())}.jpg"),'jpeg')
         self.reload_flags()
@@ -106,7 +107,11 @@ class CommandLineApp:
                 logging.warning('tasks ended unexpectedly.')
                 break
             sleep(rand_normal(5,9))
+    def collectitems(self,img_path,flags_path='./flags/items'):
+        detector=DropDetector(flags_path)
+        detector.collect(img_path)
+
 
 if __name__=="__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     fire.Fire(CommandLineApp)
