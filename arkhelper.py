@@ -44,12 +44,9 @@ class DropDetector:
                 gconfig['items-dict'][i]=i
         config.save()
 
-        # 增量生成特征
+        # 重新提取特征
         debug('sync features database')
-        for i in range(0,len(self.__uuid)):
-            if not self.__featured.has_id(i):
-                self.__featured.save_SIFT_to_database(self.__uuid[i],*self.__featured.getSIFT(self.__flags[i]))
-        self.__featured.save_SIFT_to_database()
+        self.__featured.load_SIFT_from_database()
     
     def match_img(self,image,target,value):
         #w,h=template.shape[::-1]
@@ -166,7 +163,7 @@ class DropDetector:
         debug('turn img into gray')
         gray=cv.cvtColor(np.asarray(img),cv.COLOR_RGB2BGR)
         gray=cv.cvtColor(gray,cv.COLOR_BGR2GRAY)
-        gray=cv.imread('./screenshot.png',cv.IMREAD_GRAYSCALE)
+        #gray=cv.imread('./screenshot.png',cv.IMREAD_GRAYSCALE)
         debug('looking img up in current flags')
         return self.__featured.sift_alignment_with_database(gray)
     
