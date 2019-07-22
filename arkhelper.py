@@ -20,7 +20,7 @@ def lookup_name_by_uuid(id):
 class DropDetector:
     def __init__(self,flags_path):
         self.__flags_path=os.path.join(flags_path,'items')
-        self.__featured=image.SIFTHelper()
+        self.__featured=image.SIFTHelper(self.__flags_path)
         self.reload_flags()
     
     def reload_flags(self):

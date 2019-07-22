@@ -15,13 +15,6 @@ def match_img(image,target,value):
     threshold=value
     loc=np.where(res>=threshold)
 
-    """
-    for pt in zip(*loc[::-1]):
-        cv.rectangle(img_rgb,pt,(pt[0]+w,pt[1]+h),(7,249,151),2)
-    cv.imshow('de',img_rgb)
-    cv.waitKey(0)
-    cv.destroyAllWindows()
-    """
     ans=[]
     for pt in zip(*loc[::-1]):
         ans.append(pt)
@@ -35,8 +28,8 @@ class SIFTHelper:
         self.__flags=[]
         self.__locs=[]
         self.__uuid=[]
-        self.__database_path=os.path.join(flags_path,'items')
-        debug(f"set features path as {self.__database_path}")
+        self.__database_path=flags_path
+        info(f"set features path as {self.__database_path}")
         
         self.load_SIFT_from_database()
 
@@ -90,7 +83,7 @@ class SIFTHelper:
                                     gm, None, flags=2)
             cv.imwrite(f"./debug_match_{str(uuid.uuid4())}.png",match_img)
             if len(gm)>fac:
-                return self.__uuid[i]
+                return self.__uuid[di]
         
         return None
 
