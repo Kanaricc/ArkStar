@@ -3,7 +3,7 @@ import numpy as np
 import os
 import subprocess
 from PIL import Image
-from logging import debug
+from logging import debug,info
 import uuid
 
 def match_img(image,target,value):
@@ -79,11 +79,11 @@ class SIFTHelper:
 
         for i in range(0,len(self.__flags)):
             gm=self.sift_alignment(self.__flags[i],desc)
-            match_img = cv.drawMatchesKnn( self.__dimg[i], self.__locs[i],img, key,
-                                    gm, None, flags=2)
-            cv.imwrite(f"./debug_match_{str(uuid.uuid4())}.png",match_img)
+            #match_img = cv.drawMatchesKnn( self.__dimg[i], self.__locs[i],img, key,
+            #                        gm, None, flags=2)
+            #cv.imwrite(f"./debug_match_{str(uuid.uuid4())}.png",match_img)
             if len(gm)>fac:
-                return self.__uuid[di]
+                return self.__uuid[i]
         
         return None
 

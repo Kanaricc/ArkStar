@@ -24,6 +24,7 @@ class DropDetector:
         self.reload_flags()
     
     def reload_flags(self):
+        info('reload item_flags')
         self.__flags=[]
         self.__uuid=[]
         for parent, dirnames, filenames in os.walk(self.__flags_path,  followlinks=True):
@@ -34,7 +35,7 @@ class DropDetector:
                 if img is not None:
                     self.__uuid.append(filename.split('.')[0])
                     self.__flags.append(img) # 0,以灰度读取
-        info(f"finish loading flags")
+        info(f"finish loading flags image")
         debug(self.__flags)
 
         # 同步到config的数据库中
@@ -223,5 +224,5 @@ class CommandLineApp:
         detector=DropDetector(flags_path)
 
 if __name__=="__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     fire.Fire(CommandLineApp)
