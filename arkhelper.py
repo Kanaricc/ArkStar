@@ -208,8 +208,10 @@ class CommandLineApp:
                         if isinstance(number,int):
                             ans[uu]+=detector.detect_item_number(item)
                         else:
-                            logging.warning(f"number detect failed: get result: {number}. saving failed image")
+                            logging.warning(f"number detect failed: get result: {number}. saving failed image and see it as 1")
                             copyfile('./temp.png',f"./failed_{lookup_name_by_uuid(uu)}_{str(uuid.uuid4())}.png")
+                            ans[uu]+=1
+
             for k in ans:
                 print(lookup_name_by_uuid(k),ans[k])
 
