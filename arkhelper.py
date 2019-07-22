@@ -19,7 +19,8 @@ def lookup_name_by_uuid(id):
 
 class DropDetector:
     def __init__(self,flags_path):
-        self.__flags_path=flags_path
+        self.__flags_path=os.path.join(flags_path,'items')
+        self.__featured=image.SIFTHelper()
         self.reload_flags()
     
     def reload_flags(self):
@@ -37,10 +38,18 @@ class DropDetector:
         debug(self.__flags)
 
         # 同步到config的数据库中
+        debug('sync config database')
         for i in self.__uuid:
             if i not in gconfig['items-dict']:
                 gconfig['items-dict'][i]=i
         config.save()
+
+        # 增量生成特征
+        debug('sync features database')
+        for i in range(0,len(self.__uuid)):
+            if not self.__featured.has_id(i):
+                self.__featured.save_SIFT_to_database(self.__uuid[i],*self.__featured.getSIFT(self.__flags[i]))
+        self.__featured.save_SIFT_to_database()
     
     def match_img(self,image,target,value):
         #w,h=template.shape[::-1]
@@ -157,11 +166,9 @@ class DropDetector:
         debug('turn img into gray')
         gray=cv.cvtColor(np.asarray(img),cv.COLOR_RGB2BGR)
         gray=cv.cvtColor(gray,cv.COLOR_BGR2GRAY)
+        gray=cv.imread('./screenshot.png',cv.IMREAD_GRAYSCALE)
         debug('looking img up in current flags')
-        for i in range(0,len(self.__flags)):
-            if len(self.match_img(gray,self.__flags[i],0.8))>0:
-                return self.__uuid[i]
-        return None
+        return self.__featured.sift_alignment_with_database(gray)
     
 class CommandLineApp:
     def __init__(self):
@@ -178,11 +185,11 @@ class CommandLineApp:
                 logging.warning('tasks ended unexpectedly.')
                 break
             sleep(rand_normal(5,9))
-    def __collect_items_saving_database(self,img_path,flags_path='./flags/items'):
+    def __collect_items_saving_database(self,img_path,flags_path='./flags'):
         detector=DropDetector(flags_path)
         detector.collect_database(img_path)
     
-    def collect_items(self,img_path,flags_path='./flags/items',auto_addition=True):
+    def collect_items(self,img_path,flags_path='./flags',auto_addition=True):
         detector=DropDetector(flags_path)
         if os.path.isfile(img_path):
             if auto_addition:
@@ -214,6 +221,9 @@ class CommandLineApp:
 
             for k in ans:
                 print(lookup_name_by_uuid(k),ans[k])
+    
+    def reload_item_database(self,flags_path='./flags'):
+        detector=DropDetector(flags_path)
 
 if __name__=="__main__":
     logging.basicConfig(level=logging.DEBUG)
