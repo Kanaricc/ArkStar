@@ -48,7 +48,7 @@ class SIFTHelper:
         return key_points,desc
     
     def get_SIFT_from_file(self,path):
-        debug(f"load sift from {path}")
+        info(f"load sift from {path}")
         locs,desc= self.getSIFT(cv.imread(path,0))
         return locs,desc
     
@@ -68,7 +68,7 @@ class SIFTHelper:
             for filename in filenames:
                 fullpath=os.path.join(self.__database_path,filename)
                 self.load_SIFT_from_file(filename.split('.')[0],fullpath)
-        debug('finish loading sift features')
+        info('finish loading sift features')
     
     def sift_alignment(self,query,train,dist=0.6):
         matches=self.__matcher.knnMatch(query,train,k=2)
@@ -85,7 +85,6 @@ class SIFTHelper:
         key,desc=self.getSIFT(img)
 
         for i in range(0,len(self.__flags)):
-            #debug('this sift', self.__flags[i])
             gm=self.sift_alignment(self.__flags[i],desc)
             match_img = cv.drawMatchesKnn( self.__dimg[i], self.__locs[i],img, key,
                                     gm, None, flags=2)
@@ -94,51 +93,6 @@ class SIFTHelper:
                 return self.__uuid[i]
         
         return None
-
-
-
-    def sift_alignment_d(self,image_1: str, image_2: str):
-        """
-            Aligns two images by using the SIFT features. 
-    
-            Step 1. The function first detects the SIFT features in I1 and I2.
-            Step 2. Then it uses match(I1,I2) function to find the matched pairs between 
-            the two images.
-            Step 3. The matched pairs returned by Step 2 are potential matches based 
-            on similarity of local appearance, many of which may be incorrect.
-            Therefore, we do a ratio test to find the good matches.
-    
-            Reference: https://docs.opencv.org/3.4.3/dc/dc3/tutorial_py_matcher.html
-    
-            Parameters:
-                image_1, image_2: filename as string
-            Returns:
-                (matched pairs number, good matched pairs number, match_image)
-        """
-        im1 = cv2.imread(image_1, cv2.IMREAD_GRAYSCALE)
-        im2 = cv2.imread(image_2, cv2.IMREAD_GRAYSCALE)
-    
-        sift = cv2.xfeatures2d.SIFT_create()
-        key_points_1, descriptors_1 = sift.detectAndCompute(im1, None)
-        key_points_2, descriptors_2 = sift.detectAndCompute(im2, None)
-    
-        bf_matcher = cv2.BFMatcher()  # brute force matcher
-        # matches = bf_matcher.match(descriptors_1, descriptors_2)  # result is not good
-        matches = bf_matcher.knnMatch(descriptors_1, descriptors_2, k=2)
-    
-        # Apply ratio test
-        good_matches = []
-        for m,n in matches:
-            if m.distance < 0.6 * n.distance:  # this parameter affects the result filtering
-                good_matches.append([m])
-    
-        match_img = cv2.drawMatchesKnn(im1, key_points_1, im2, key_points_2,
-                                    good_matches, None, flags=2)
-        return len(matches), len(good_matches), match_img
-
-#matches, good_matches, match_img = sift_alignment('../flags/items/240eef57-a173-427d-b040-8609a5cceb22.jpg', './screenshot.png')
-#cv2.imwrite('match.png', match_img)
-#print(matches,good_matches)
 
 def binarify(img,fac=180,rev=0):
         threshold = fac
