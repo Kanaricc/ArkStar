@@ -10,6 +10,7 @@ import os
 from PIL import Image,ImageEnhance,ImageDraw
 import numpy as np
 from config import gconfig
+import uuid
 
 def lookup_name_by_uuid(id):
     if id not in gconfig['items-dict']:
@@ -52,11 +53,11 @@ class DropDetector:
         return ans
     
     def get_item_box(self,img):
-        return img.crop((665,785,1920,975))
+        return img.crop((665+30,785,1920,975))
     
     def get_spliting_lines(self,img):
         #high=image.binarify(img,75)
-        high=ImageEnhance.Contrast(img).enhance(2.5)
+        high=ImageEnhance.Contrast(img).enhance(2.6)
         #high.save('./debug.png','png')
         w,h=high.size
         breakpoints=[]
@@ -203,10 +204,15 @@ class CommandLineApp:
                         uu=detector.detect_uuid(item)
                         if uu not in ans:
                             ans[uu]=0
-                        ans[uu]+=detector.detect_item_number(item)
+                        number=detector.detect_item_number(item)
+                        if isinstance(number,int):
+                            ans[uu]+=detector.detect_item_number(item)
+                        else:
+                            logging.warning(f"number detect failed: get result: {number}. saving failed image")
+                            copyfile('./temp.png',f"./failed_{lookup_name_by_uuid(uu)}_{str(uuid.uuid4())}.png")
             for k in ans:
                 print(lookup_name_by_uuid(k),ans[k])
 
 if __name__=="__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     fire.Fire(CommandLineApp)

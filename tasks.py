@@ -69,7 +69,7 @@ class ConfirmBattleResultTask:
         self.__adb=adb
         self.__helper=TaskHelper(adb)
     
-    def act(self):
+    def act(self,collect_result=True):
         while True:
             sleep(rand_normal(*gconfig['delay']['enddetect']))
             
@@ -79,7 +79,11 @@ class ConfirmBattleResultTask:
             
             if len(image.match_img('./screenshot.png','./flags/flag_endbattle.jpg',0.8))>0:
                 debug('battle endding flag detected, end battle')
-                copyfile('./screenshot.png',f"./results/{str(uuid.uuid4())}.png")
+                if collect_result:
+                    info('saving result, waiting for animation')
+                    sleep(rand_normal(2,3))
+                    self.__adb.pull_screenshot()
+                    copyfile('./screenshot.png',f"./results/{str(uuid.uuid4())}.png")
                 self.__helper.tapdelay(config.pointdata['battle']['confirmResult'])
                 break
         self.__helper.sleepui(1.5)
